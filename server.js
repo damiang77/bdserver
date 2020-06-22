@@ -17,6 +17,7 @@ app.use(cors(corsOptions));
 app.use('/api/v1/', dealsRoute);
 app.use('/api/v1/users', userRoute);
 
+
 var path = require('path');
 var dir = path.join(__dirname, 'public');
 

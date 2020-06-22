@@ -1,10 +1,14 @@
 const dbconnection = require("../models/dbconnection");
 const Deal = require("../models/Deal");
+const User = require("../models/User");
 const cloudinary = require("cloudinary").v2;
 require("dotenv/config");
 const multer = require("multer");
 
 exports.deals_create =  async (req, res) => {
+    const userId = req.user._id;
+    const userName = await User.findOne({_id: userId})
+
     const storage = multer.diskStorage({
         destination: function(req, file, cb) {
           cb(null, 'uploads/')
@@ -44,7 +48,9 @@ exports.deals_create =  async (req, res) => {
                 description: req.body.description,
                 price: req.body.price,
                 oldPrice: req.body.oldPrice,
-                image: image.url
+                image: image.url,
+                user: userName.login,
+                url: req.body.url
             })
             try {
                 const savedDeal = await deal.save();
@@ -80,8 +86,23 @@ exports.deals_read_user = async (req, res) => {
 
 exports.deals_readId = async (req, res) => {
   try {
-    const deal = await Deal.findById(req.params.id);
+    const deal = await Deal.findOne({_id: req.params.id}).select('-uservote');
     res.json(deal);
+  } catch (error) {
+    res.status(400).json({ message: error });
+  }
+};
+
+exports.deal_user = async (req, res) => {
+  let user = req.user._id;
+  console.log(user);
+  try {
+    const deal = await Deal.deal_user(req.params.id, user);
+    if(deal===0){
+      res.status(400).json({'Error': 'ID or User doesnt exist'})
+    }else{
+      res.json(deal);
+    }
   } catch (error) {
     res.status(400).json({ message: error });
   }

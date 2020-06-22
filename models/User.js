@@ -55,7 +55,7 @@ const UserSchema = mongoose.Schema({
   UserSchema.methods.generateAuthToken = function () {
       var user = this;
       var access = 'auth';
-      var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.TOKEN_SECRET).toString();
+      var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.TOKEN_SECRET, { expiresIn: '1h' }).toString();
 
       user.tokens.push({access, token});
 
@@ -83,6 +83,7 @@ const UserSchema = mongoose.Schema({
     try {
         decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     } catch (error) {
+        console.log('token expired')
         return Promise.reject();
     }
 

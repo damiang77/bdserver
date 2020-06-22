@@ -39,7 +39,15 @@ const DealSchema = mongoose.Schema({
         type: String
       }
     }
-  ]
+  ],
+  user: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  }
 });
 
 DealSchema.statics.addVote = async function(id, user, vote) {
@@ -108,10 +116,22 @@ DealSchema.statics.deals_user = async function(user) {
       } 
     }
   }
-
-
-  
   return allDeals;
+};
+
+DealSchema.statics.deal_user = async function(id, user) {
+  let deal = this;
+  try{
+    let userVotedOnId = await deal.findOne({ _id: id, "uservote.user": user }, {uservote: 0}).lean();
+    if(userVotedOnId){
+      Object.assign(userVotedOnId, {vote: "true"})
+    }
+    return userVotedOnId;
+  } catch(e){
+    console.log(e)
+    return 0
+  }
+
 };
 
 module.exports = mongoose.model("Deal", DealSchema);
