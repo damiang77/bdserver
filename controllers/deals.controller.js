@@ -6,6 +6,8 @@ require("dotenv/config");
 const multer = require("multer");
 
 exports.deals_create =  async (req, res) => {
+
+
     const userId = req.user._id;
     const userName = await User.findOne({_id: userId})
 
@@ -19,8 +21,10 @@ exports.deals_create =  async (req, res) => {
         }
       })
     const upload = multer({ storage }).single('image')
+
     upload(req, res, function(err) {
         if (err) {
+          console.log(err)
           return res.send(err)
         }
         console.log('file uploaded to server')
@@ -32,12 +36,15 @@ exports.deals_create =  async (req, res) => {
             api_secret: process.env.APISECRET
           });
         
-        const path = req.file.path
+        const path = req.file.path;
     
         cloudinary.uploader.upload(
           path,
           async function(err, image) {
-            if (err) return res.send(err)
+            if (err) {
+              console.log(err);
+              return res.send(err);
+            }
             console.log('file uploaded to Cloudinary');
             // remove file from server
             const fs = require('fs');
@@ -48,7 +55,7 @@ exports.deals_create =  async (req, res) => {
                 description: req.body.description,
                 price: req.body.price,
                 oldPrice: req.body.oldPrice,
-                image: image.url,
+                image: image.secure_url,
                 user: userName.login,
                 url: req.body.url
             })
@@ -86,7 +93,7 @@ exports.deals_read_user = async (req, res) => {
 
 exports.deals_readId = async (req, res) => {
   try {
-    const deal = await Deal.findOne({_id: req.params.id}).select('-uservote');
+    const deal = await Deal.findOne({_id: req.params.id}).select('-uservote -comments.userId -comments._id');
     res.json(deal);
   } catch (error) {
     res.status(400).json({ message: error });
@@ -146,6 +153,30 @@ exports.deals_addvote = (req, res) => {
       console.log(err);
     });
 };
+
+
+
+exports.deal_user_addComment = async (req, res) => {
+  let id = req.params.id;
+  let userId = req.user._id;
+  let userName = await User.findOne({_id: userId})
+  let comment = req.body.comment;
+
+  Deal.addComment(id, userId, userName.login, comment)
+    .then(commented => {
+      if (commented === 0) {
+        res.status(400);
+      }
+      res.json(commented);
+    })
+    .catch(err => {
+      res.status(400).json({ err });
+      console.log(err);
+    });
+};
+
+
+
 
 exports.deals_removevote = (req, res) => {
   let id = req.params.id;

@@ -40,6 +40,23 @@ const DealSchema = mongoose.Schema({
       }
     }
   ],
+  comments: [
+    {
+      userId: {
+        type: String
+      },
+      userName: {
+        type: String
+      },
+      comment: {
+        type: String
+      },
+      date: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
   user: {
     type: String,
     required: true
@@ -71,6 +88,24 @@ DealSchema.statics.addVote = async function(id, user, vote) {
     }
   }
   return 0;
+};
+
+DealSchema.statics.addComment = async function(id, userId, userName, comment) {
+    let deal = this;
+
+      const updatedDeal = await deal.findOneAndUpdate(
+        { _id: id },
+        {
+          $push: {
+            comments: {
+              userId: userId,
+              userName: userName,
+              comment: comment
+            }
+          }
+        }
+      );
+      return updatedDeal;
 };
 
 DealSchema.statics.removeVote = async function(id, user) {

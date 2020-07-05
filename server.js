@@ -14,8 +14,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use('/api/v1/', dealsRoute);
-app.use('/api/v1/users', userRoute);
+app.use('/bd/api/v1/', dealsRoute);
+app.use('/bd/api/v1/users', userRoute);
 
 
 var path = require('path');
